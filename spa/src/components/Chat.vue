@@ -4,16 +4,16 @@
       <div class="flex-grow p-1 overflow-y-auto h-full" ref="chatArea">
         <ul>
           <li v-for="(msg, key) in messages" :key="key">
-            <i v-if="msg.new != true && msg.type != 'system'" class="text-white">
+            <i v-if="msg.new !== true && msg.type !== 'system'" class="text-white">
               {{ msg.username }}: {{ msg.msg }}
             </i>
             <strong
-              v-if="msg.type === 'system' && msg.msg"
+              v-if="msg.msg && msg.type === 'system'"
               class="text-white">
               {{ msg.msg }}
             </strong>
             <strong
-              v-else-if="msg.type === 'system'"
+              v-else-if="msg.type && msg.type === 'system'"
               class="text-white">
               {{ msg.time }}
             </strong>
@@ -22,7 +22,7 @@
               class="text-yellow-200">
               {{msg.username}}<span
                 class="inline" v-show="msg.role"
-              >[{{msg.role}}]</span
+            >[{{msg.role}}]</span
             >: {{ msg.msg }}
               </span>
             <span v-else-if="msg.new === true">
@@ -255,7 +255,7 @@ export default Vue.extend({
         this.systemMessage(event.username + " has left.");
         this.users = this.users.filter((u) => u.id !== event.id);
       });
-        this.$socket.on("AV:new", event => {
+      this.$socket.on("AV:new", event => {
         this.systemMessage(event.username + " has entered.");
         this.users.push(event);
       })

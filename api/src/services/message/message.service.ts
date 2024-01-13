@@ -49,5 +49,12 @@ export class MessageService {
     );
   }
 
-
+  public async deleteMessage(
+    messageId,
+    placeId,
+  ): Promise<any> {
+    return await this
+      .messageRepository
+      .deleteMessage(messageId, placeId);
+  }
 }

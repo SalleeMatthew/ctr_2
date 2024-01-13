@@ -49,8 +49,6 @@ class MessageController {
         const { id } = session;
         const { body } = request.body;
         const placeId = Number.parseInt(request.params.placeId);
-
-
         const messageId = await this.messageService.create(
           id,
           placeId,
@@ -84,6 +82,17 @@ class MessageController {
           error: 'A problem occurred creating message.',
         });
       }
+    }
+  }
+
+  public async deleteMessage(request: Request, response: Response): Promise<void> {
+    const messageId = Number.parseInt(request.body.message_id);
+    const placeId = Number.parseInt(request.body.place_id);
+    try {
+      await this.messageService.deleteMessage(messageId, placeId);
+      response.status(200).json({success: 'deleted'});
+    } catch (error) {
+      console.log(error);
     }
   }
 

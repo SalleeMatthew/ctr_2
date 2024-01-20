@@ -1,7 +1,212 @@
 <template>
-  <div class="flex flex-row chat space-x-1 p-1 text-chat w-full">
+  <div id="chat" class="flex flex-row chat space-x-1 p-1 text-chat w-full">
     <div class="messages-pane flex flex-col flex-1">
-      <div class="flex-grow p-1 overflow-y-auto h-full" ref="chatArea">
+      <div class="flex-grow p-1 overflow-y-auto h-full" ref="chatArea"> 
+        <div id="userMenu" 
+          class="
+            absolute
+            w-40
+          " 
+          style="border: outset #EEE;" 
+          @mouseleave="closeMenu()"
+        >
+          <ul>
+            <li 
+              class="
+                flex-none
+                p-1
+                pl-3.5
+                bg-gray-300
+                text-black
+                hover:text-white 
+                hover:bg-gray-500
+                active:bg-gray-400
+                cursor-pointer
+              "
+              @click="closeMenu()">
+              Cancel Menu
+            </li>
+            <li style="border: inset #EEE 3px;"></li>
+            <li v-if="$store.data.view3d === true 
+              && activePanel === 'users'" 
+              class="
+                flex-none
+                p-1
+                pl-3.5
+                bg-gray-300
+                text-black
+                hover:text-white 
+                hover:bg-gray-500
+                active:bg-gray-400
+                cursor-pointer
+              "
+              @click="beamTo()">
+              Beam to
+            </li>
+            <li v-if="activePanel === 'users'" 
+              class="
+                flex-none
+                p-1
+                pl-3.5
+                bg-gray-300
+                text-gray-500
+                hover:text-white 
+                hover:bg-gray-500
+                active:bg-gray-400
+                cursor-pointer
+              "
+            >
+              Start Whisper
+            </li>
+            <li v-if="activePanel === 'users'" 
+              class="
+                flex-none
+                p-1
+                pl-3.5
+                bg-gray-300
+                text-gray-500
+                hover:text-white 
+                hover:bg-gray-500
+                active:bg-gray-400
+                cursor-pointer
+              "
+            >
+              Invite Chat
+            </li>
+            <li v-if="activePanel === 'users'" 
+              class="
+                flex-none
+                p-1
+                pl-3.5
+                bg-gray-300
+                text-gray-500
+                hover:text-white 
+                hover:bg-gray-500
+                active:bg-gray-400
+                cursor-pointer
+              "
+            >
+              Ignore
+            </li>
+            <li v-if="activePanel === 'sharedObjects' 
+              && !canTakeObject
+              && isForSale" 
+              class="
+                flex-none
+                p-1
+                pl-3.5
+                bg-gray-300
+                text-gray-500
+                hover:text-white 
+                hover:bg-gray-500
+                active:bg-gray-400
+                cursor-pointer
+              "
+            >
+              Buy
+            </li>
+            <li v-if="activePanel === 'sharedObjects' 
+              && $store.data.view3d
+              && canDropObject" 
+              class="
+                flex-none
+                p-1
+                pl-3.5
+                bg-gray-300
+                text-black
+                hover:text-white 
+                hover:bg-gray-500
+                active:bg-gray-400
+                cursor-pointer
+              " 
+              @click="moveObject()"
+            >
+              Move
+            </li>
+            <li v-if="activePanel === 'sharedObjects' 
+              && canTakeObject" 
+              class="
+                flex-none
+                p-1
+                pl-3.5
+                bg-gray-300
+                text-gray-500
+                hover:text-white 
+                hover:bg-gray-500
+                active:bg-gray-400
+                cursor-pointer
+              "
+            >
+              Take
+            </li>
+            <li v-if="activePanel === 'backpack' 
+              && canDropObject" 
+              class="
+                flex-none
+                p-1
+                pl-3.5
+                bg-gray-300
+                text-black
+                hover:text-white 
+                hover:bg-gray-500
+                active:bg-gray-400
+                cursor-pointer
+              " 
+              @click="dropObject()"
+            >
+              Drop
+            </li>
+            <li v-if="activePanel === 'sharedObjects' 
+              && canTakeObject 
+              || activePanel === 'backpack'" 
+              class="
+                flex-none
+                p-1
+                pl-3.5
+                bg-gray-300
+                text-gray-500
+                hover:text-white 
+                hover:bg-gray-500
+                active:bg-gray-400
+                cursor-pointer
+              "
+            >
+              Destroy
+            </li>
+            <li v-if="activePanel === 'sharedObjects' 
+              || activePanel === 'backpack'" 
+              class="
+                flex-none
+                p-1
+                pl-3.5
+                bg-gray-300
+                text-gray-500
+                hover:text-white 
+                hover:bg-gray-500
+                active:bg-gray-400
+                cursor-pointer
+              "
+            >
+              Properties
+            </li>
+            <li v-if="activePanel === 'users'" style="border:inset #EEE 3px;"></li>
+            <li v-if="activePanel === 'users'" 
+              class="
+                flex-none
+                p-1
+                pl-3.5
+                bg-gray-300
+                text-gray-500
+                hover:text-white 
+                hover:bg-gray-500
+                active:bg-gray-400
+                cursor-pointer
+              "
+            >
+              Request Objects
+            </li>
+          </ul>
+        </div>
         <ul>
           <li v-for="(msg, key) in messages" :key="key">
             <i v-if="msg.new !== true && msg.type !== 'system'" class="text-white">
@@ -78,7 +283,10 @@
           Body Language
         </span>
         <span v-if="activePanel === 'sharedObjects'" class="flex-grow">
-          Objects
+          ({{ sharedObjects.length }}) Objects
+        </span>
+        <span v-if="activePanel === 'backpack'" class="flex-grow">
+          ({{ backbackObjects.length }}) My Backpack
         </span>
         <button
           type="button"
@@ -90,20 +298,20 @@
             hover:bg-gray-200
             active:bg-gray-400
           "
-          @click="changeActivePanel"
+          @click="changeActivePanel()"
         >
           Next
         </button>
       </div>
-      <div class="flex-grow overflow-y-auto p-1 messages-pane">
-        <ul v-if="activePanel === 'users'">
+      <div id="sideBar" class="flex-grow overflow-y-auto p-1 messages-pane" >
+        <ul v-if="activePanel === 'users'" >
           <li class="text-white">
             <img src="/assets/img/av_me.gif" class="inline" />
             {{ this.$store.data.user.username }}
           </li>
-          <li v-for="(user, key) in users" :key="key" @click="beamTo(user.id)">
-            <img src="/assets/img/av_def.gif" class="inline" />
-            {{ user.username }}
+          <li v-for="(user, key) in users" :key="key" @mouseup.right="userMenu(user.id, user.username)">
+              <img src="/assets/img/av_def.gif" class="inline" />
+              {{ user.username }}
           </li>
         </ul>
         <ul v-if="activePanel === 'gestures'">
@@ -120,21 +328,51 @@
           <li
             v-for="object in sharedObjects"
             :key="object.id"
-            @click="moveObject(object.id)"
+            @mouseup.right="userMenu(object.id, activePanel) "
           >
             {{ object.name }}
           </li>
         </ul>
+        <ul v-if="activePanel === 'backpack'">
+          <li
+            v-for="object in backbackObjects"
+            :key="object.id"
+            class="flex"
+            @mouseup.right="userMenu(object.id, activePanel) "
+          >
+            <div class="flex-1">
+              {{ object.name }}
+            </div>
+          </li>
+        </ul>
       </div>
     </div>
-  </div>
+  </div>  
 </template>
 
 <script lang="ts">
-let numberOfPosts = 0;
-
 import Vue from 'vue';
 import { debugMsg } from '@/helpers';
+
+let numberOfPosts = 0;
+let userMenu = null;
+var cursorX = null;
+var cursorY = null;
+let menuData = null;
+document.addEventListener('mousemove', onMouseUpdate, false);
+document.addEventListener('mouseenter', onMouseUpdate, false);
+    
+function onMouseUpdate(e) {
+  cursorX = e.pageX;
+  cursorY = e.pageY;
+}
+function getCursorX() {
+  return cursorX;
+}
+function getCursorY() {
+  return cursorY;
+      }
+
 export default Vue.extend({
   name: "Chat",
   props: [
@@ -147,8 +385,13 @@ export default Vue.extend({
       message: "",
       messages: [],
       users: [],
+      backbackObjects: [],
       primaryRole: "",
       activePanel: "users",
+      objectId: null,
+      canDropObject: false,
+      canTakeObject: false,
+      isForSale: false,
     };
   },
   methods: {
@@ -156,7 +399,6 @@ export default Vue.extend({
     async getRole(): Promise<void> {
       const response = await this.$http.get("/member/getrolename");
       this.primaryRole = response.data.PrimaryRoleName[0].name;
-      console.log(`Role received ${this.primaryRole}`);
     },
     sendMessage(): void {
       this.debugMsg("sending message...");
@@ -171,7 +413,7 @@ export default Vue.extend({
         }
       )
 
-      //Limits the amount of posts allowed within 30 seconds
+      //Limits the amount of posts allowed within a rolling 30 seconds
       const maxPosts = 7;
       const postInterval = .5;
       if(this.message !== ""){
@@ -207,9 +449,45 @@ export default Vue.extend({
         time: new Date().toLocaleTimeString("en-US", {timeZone: "America/New_York"}),
       });
     },
+    preventMenu(){
+      let chat = document.getElementById("chat")
+      chat.addEventListener("contextmenu", function(e){
+        e.preventDefault()
+      })
+    },
+    userMenu(target, username){
+      userMenu = document.getElementById('userMenu');
+      userMenu.style.display = "block";
+      userMenu.style.left = getCursorX() - 15 + "px";
+      userMenu.style.top = getCursorY() - 15 + "px";
+      menuData = [target,username]
+    },
+    closeMenu(){
+      userMenu = document.getElementById('userMenu');
+      userMenu.style.display = "none";
+    },
     startNewChat(): void {
+      userMenu = document.getElementById('userMenu');
+      userMenu.style.display = "none";
       this.messages = [];
       this.users = [];
+      this.canDropObject = false;
+      this.canTakeObject = false;
+      this.isForSale = false;
+      this.preventMenu();
+      if(
+        this.$store.data.place.member_id === this.$store.data.user.id
+        && this.$store.data.view3d
+        ) {
+          this.canDropObject = true;
+        }
+      if(
+        this.$store.data.place.member_id === this.$store.data.user.id ||
+        this.sharedObjects.member_id === this.$store.data.user.id
+        ) {
+          this.canTakeObject = true;
+        }
+        console.log(this.sharedObjects)
       this.$http
         .get(`/message/place/${this.$store.data.place.id}`, {
           limit: 10,
@@ -230,20 +508,26 @@ export default Vue.extend({
           this.activePanel = "sharedObjects";
           break;
         case "sharedObjects":
+          this.activePanel = "backpack";
+          break;
+        case "backpack":
           this.activePanel = "users";
           break;
       }
+      this.closeMenu();
     },
     sendGesture(gestureIndex): void {
       this.$socket.emit("AV", {
         gesture: gestureIndex + 1, // Gestures in ssts start at 1 for some reason.
       });
     },
-    moveObject(objectId): void {
-      this.$emit("move-object", objectId);
+    moveObject(): void {
+      this.$emit("move-object", menuData[0]);
+      this.closeMenu();
     },
-    beamTo(userId): void {
-      this.$emit("beam-to", userId);
+    beamTo(): void {
+      this.$emit("beam-to", menuData[0]);
+      this.closeMenu();
     },
     startSocketListeners(): void {
       this.$socket.on("CHAT", data => {
@@ -264,6 +548,11 @@ export default Vue.extend({
         this.systemMessage("Chat server disconnected. Please refresh to reconnect.");
       });
     },
+    dropObject() {
+      this.$emit("drop-object", menuData[0]);
+      this.closeMenu();
+      this.sharedObjects.$forceUpdate();
+    }
   },
   watch: {
     place() {
@@ -284,6 +573,13 @@ export default Vue.extend({
       },
       deep: true,
     },
+    async activePanel() {
+      if(this.activePanel === 'backpack') {
+        this.backbackObjects = [];
+        const response = await this.$http.get("/member/backpack");
+        this.backbackObjects = response.data.objects;
+      }
+    }
   },
   computed: {
     connected: function() { return this.$socket.connected; },

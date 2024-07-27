@@ -365,11 +365,13 @@ export default Vue.extend({
           await this.$http.post("/mall/drop", {
           'objectId': objectId,
           'shopId': this.store
+          }).then((response) => {
+            if(response.data.status === 'success'){
+              this.success = 'Object dropped';
+              this.showSuccess = true;
+              this.store = null;
+            }
           });
-          this.success = 'Object dropped';
-          this.showSuccess = true;
-          this.store = null;
-          this.getResults();
         }
       } catch (errorResponse: any) {
         if (errorResponse.response.data.error) {
@@ -379,6 +381,8 @@ export default Vue.extend({
           this.error = "An unknown error occurred";
           this.showError = true;
         }
+      } finally {
+        await this.getResults();
       }
     },
     async remove(objectId): Promise<void> {

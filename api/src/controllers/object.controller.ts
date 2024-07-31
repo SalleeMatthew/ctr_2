@@ -109,11 +109,12 @@ class ObjectController {
     ) {
       fileExtension = request.files.textureFile.name.split('.').pop();
       if (
-        !['jpeg', 'jpg'].includes(fileExtension) ||
-        !['image/jpeg','image/pjpeg'].includes(request.files.textureFile.mimetype) 
+        !['jpeg', 'jpg', 'gif', 'png'].includes(fileExtension) ||
+        !['image/jpeg','image/pjpeg', 'image/gif', 'image/png']
+          .includes(request.files.textureFile.mimetype) 
       ) {
         response.status(400).json({
-          error: 'Texture file must be a .jpeg or .jpg file',
+          error: 'Texture file must be a .jpeg, .jpg, .gif, or .png file',
         });
         return;
       }
@@ -201,7 +202,7 @@ class ObjectController {
         throw new Error('You can not upload more than what the object is limited to.');
       }
       await this.objectService.performObjectRestockTransaction(session.id, sellerFee);
-      await this.objectService.increaseQuantity(object.id, object.quantity + increase);
+      await this.objectService.increaseQuantity(object.id, object.quantity + increase, object.status);
       response.status(200).json({
         status: 'success',
       });

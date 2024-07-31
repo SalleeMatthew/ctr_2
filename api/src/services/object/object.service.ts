@@ -22,9 +22,9 @@ export class ObjectService {
     private mallRepository: MallRepository,
   ) {}
 
-  public static readonly WRL_FILESIZE_LIMIT = 80000;
-  public static readonly TEXTURE_FILESIZE_LIMIT = 80000;
-  public static readonly IMAGE_FILESIZE_LIMIT = 80000;
+  public static readonly WRL_FILESIZE_LIMIT = 81920;
+  public static readonly TEXTURE_FILESIZE_LIMIT = 81920;
+  public static readonly IMAGE_FILESIZE_LIMIT = 81920;
   public static readonly SELLER_FEE_PERCENT = 0.2;
   public static readonly STATUS_DELETED = 0;
   public static readonly STATUS_ACTIVE = 1;
@@ -112,19 +112,26 @@ export class ObjectService {
     });
   }
 
-  public async increaseQuantity(objectId: number, quantity: number) {
-    this.objectRepository.increaseObjectQuantity(objectId, {
-      quantity: quantity,
-      status: ObjectService.STATUS_APPROVED,
-    });
+ public async increaseQuantity(objectId: number, quantity: number, status: number) {
+    if(status === 1){
+      return await this.objectRepository.increaseObjectQuantity(objectId, {
+        quantity: quantity,
+      });
+    } else {
+      return await this.objectRepository.increaseObjectQuantity(objectId, {
+        quantity: quantity,
+        status: ObjectService.STATUS_APPROVED,
+      });
+    }
+    
   }
 
   public async updateObjectLimit(objectId: number, limit: number) {
-    this.objectRepository.updateObjectLimit(objectId, limit);
+    return await this.objectRepository.updateObjectLimit(objectId, limit);
   }
   
   public async updateObjectName(objectId: number, name: string) {
-    this.objectRepository.updateObjectName(objectId, name);
+    return await this.objectRepository.updateObjectName(objectId, name);
   }
 
   public async updateStatusRejected(objectId: number) {

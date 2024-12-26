@@ -1615,7 +1615,7 @@ coordIndex[ 0, 1, 3, 2, -1, 2, 3, 5,4, -1, 4, 5, 7, 6, -1, 6,7, 9, 8, -1, 8, 9, 
 }}}
 ]}
 ]}
-LOD {range 15 center -17.5 2 -14.5
+LOD {range 3 center -17.5 2 -14.5
 level [
 Transform{translation -17.5 2 -14.5 rotation 0 1 0 .7855 
 children[
@@ -1667,6 +1667,8 @@ field SFVec3f offset -13.125 0 -13.125
 field SFVec3f fp -11.625 0 -11.625
 field SFRotation r 0 1 0 3.9275
 field SFInt32 currentFloor 1
+field SFInt32 floorUp 0
+field SFInt32 floorDown 0
 field SFInt32 floorHeight 6
 field SFInt32 maxFloor IS maxFloor
 eventOut MFString floor_changed
@@ -1686,9 +1688,12 @@ function set_floor(v){
  else{thisFloor = currentFloor;}
  floor_changed = new MFString(thisFloor);
 }
-function set_up(v,t){ currentFloor += 1; set_floor();}
-function set_down(v,t){ currentFloor -= 1; set_floor();}
+function set_up(v,t){if(floorUp == 0 || floorUp == -1){currentFloor += 1 ; floorUp += 1; floorDown -= 1; set_floor();}}
+function set_down(v,t){if(floorDown == 0 || floorDown == -1){currentFloor -= 1 ; floorUp -= 1; floorDown += 1; set_floor();}}
 function set_go(v,t){
+ floorUp = 0;
+ floorDown = 0;
+ Browser.setGravity(false);
  elevatorView.set_orientation = Browser.viewpointOrientation;
  elevatorView.set_position = Browser.viewpointPosition;
  elevatorView.set_bind = true;
@@ -1709,7 +1714,7 @@ function set_go(v,t){
  startTime_changed = t;
  stopTime_changed = t + interval_changed;
 }
-function set_active(v,t){currentFloor = Math.round((Browser.viewpointPosition[1] -Browser.getAvatarHeight())/floorHeight);  set_floor();}
+function set_active(v,t){currentFloor = Math.round((Browser.viewpointPosition[1] -Browser.getAvatarHeight())/floorHeight); set_floor();Browser.setGravity(true);}
 function set_position(v,t){elevatorView.set_position = v;}
 function set_orientation(v,t){elevatorView.set_orientation =v;}
 function initialize(){ pos = pos.multiply(.75);

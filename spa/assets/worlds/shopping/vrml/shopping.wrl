@@ -2803,7 +2803,7 @@ DEF SharedZone BlaxxunZone{}
 
 DEF nav NavigationInfo {
 avatarSize[ .25 1.75 .75 ]
-headlight FALSE speed 7.5
+headlight FALSE speed 7
 type "WALK"
 visibilityLimit 140
 }

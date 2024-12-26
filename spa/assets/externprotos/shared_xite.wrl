@@ -208,11 +208,15 @@ DEF T1 Transform {
 translation IS translation
 rotation IS rotation
 children[
-DEF TS TouchSensor
-{
-  isOver IS isOver
-  touchTime IS touchTime
-}
+
+# TEMPORARILY REMOVED
+# DEF TS TouchSensor
+# {
+#  isOver IS isOver
+#  touchTime IS touchTime
+# }
+# TEMPORARILY REMOVED
+
 DEF LOD1 LOD {
  range [
   40

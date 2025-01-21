@@ -209,25 +209,83 @@ export default Vue.extend({
           title: "The Plaza",
           slug: "enter",
         },
+        /* TO DO: Add worlds and/or supporting pages
         {
-          title: "Employment Office",
-          slug: "employment",
+          title: "ePlex",
+          slug: "",
         },
+        {
+          title: "Parks District",
+          slug: "",
+        },
+        {
+          title: "The Clubs",
+          slug: "",
+        },
+        */
         {
           title: "Flea Market",
           slug: "fleamarket",
         },
         {
-          title: "Mall",
+          title: "Black Market",
+          slug: "blackmarket",
+        },
+        {
+          title: "The Mall",
           slug: "mall",
         },
+        /* TO DO: Add worlds and/or supporting pages
+        {
+          title: "Designer Homes",
+          slug: "",
+        },
+        {
+          title: "Museum",
+          slug: "",
+        },
+        */
         {
           title: "Bank",
           slug: "bank",
         },
         {
+          title: "Homebuilder",
+          slug: "homebuilder",
+        },
+        {
+          title: "Employment",
+          slug: "employment",
+        },
+        /* TO DO: Add worlds and/or supporting pages
+        {
+          title: "Newcomers Club",
+          slug: "",
+        },
+        {
+          title: "Outlands",
+          slug: "",
+        },
+        {
+          title: "Le Café",
+          slug: "",
+        },
+        {
+          title: "Library",
+          slug: "",
+        },
+        */
+        {
+          title: "Jail",
+          slug: "jail",
+        },
+        {
           title: "Sunset Beach",
           slug: "beach",
+        },
+        {
+          title: "Fun Park",
+          slug: "funpark",
         },
         {
           title: "Water Park",
@@ -257,58 +315,92 @@ export default Vue.extend({
           title: "The Post Office",
           slug: "postoffice",
         },
+        /* TO DO: Add worlds and/or supporting pages
         {
-          title: "Game Show",
-          slug: "gameshow",
-        },
-        {
-          title: "Black Market",
-          slug: "blackmarket",
-        },
-        {
-          title: "Jail",
-          slug: "jail",
-        },
-        {
-          title: "Fun Park",
-          slug: "funpark",
-        },
-        {
-          title: "Theatre",
-          slug: "theatre",
-        },
-        {
-          title: "(more coming soon)",
+          title: "The Portals",
           slug: "",
         },
-        /* For the curious developers. These worlds need fixing to work (see dev tools console)
-               
-                {
-                    'title': 'Employment Office',
-                    "slug": "employment"
-                },
-                {
-                    'title': 'Outlands',
-                    "slug": "outlands"
-                },
-                {
-                    'title': 'Le Cafe',
-                    "slug": "cafe"
-                },
-                {
-                    'title': 'Library (missing wrl)',
-                    "slug": "library"
-                },
-                {
-                    'title': 'Fun Park',
-                    "slug": "funpark"
-                },
-                {
-                    'title': 'Fun Park',
-                    "slug": "funpark"
-                },
-
-                 */
+        {
+          title: "-----------------------",
+          slug: "",
+        },
+        {
+          title: "Feedback",
+          slug: "",
+        },
+        {
+          title: "Caretaker In-box",
+          slug: "",
+        },
+        {
+          title: "City Council",
+          slug: "",
+        },
+        {
+          title: "Security In-box",
+          slug: "",
+        },
+        {
+          title: "C.E.R.B. In-box",
+          slug: "",
+        },
+        {
+          title: "Guides Board",
+          slug: "",
+        },
+        {
+          title: "Free Wallpaper",
+          slug: "",
+        },
+        {
+          title: "Citizens List",
+          slug: "",
+        },
+        {
+          title: "How Do I?",
+          slug: "",
+        },
+        {
+          title: "Daily News",
+          slug: "",
+        },
+        {
+          title: "Weekly News",
+          slug: "",
+        },
+        {
+          title: "FAQ/Help",
+          slug: "",
+        },
+        {
+          title: "Tourist Info",
+          slug: "",
+        },
+        {
+          title: "Calendar",
+          slug: "",
+        },
+        {
+          title: "Press Room",
+          slug: "",
+        },
+        {
+          title: "-----------------------",
+          slug: "",
+        },
+        {
+          title: "Send Postcard",
+          slug: "",
+        },
+        {
+          title: "Win Prizes!",
+          slug: "",
+        },
+        {
+          title: "Old Town",
+          slug: "",
+        },
+        */
       ],
       jumpGate: "",
     };

@@ -27,6 +27,7 @@
             <option value="0">Warning</option>
             <option value="3">3 days</option>
             <option value="7">7 days</option>
+            <option value="15">15 days</option>
             <option value="30">30 days</option>
             <option value="365242.5">Indefinite</option>
           </select>

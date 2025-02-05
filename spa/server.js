@@ -202,6 +202,9 @@ io.on("connection", async function(socket) {
         } else {
             if (user?.room) {
                 const clientSocket = io.sockets.sockets.get(chatData.to);
+                if(!clientSocket){
+                    return;
+                }
                 clientSocket.emit("WHISPER-FROM", {
                     whisper: true,
                     msg: chatData.msg,

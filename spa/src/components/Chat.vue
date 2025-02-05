@@ -126,7 +126,7 @@
             <img src="/assets/img/av_mute.gif" class="inline" v-if="blockedMembers.includes(user.username) === true" />
             <img src="/assets/img/av_def.gif" class="inline" v-else-if="worldMembers.includes(user.username) === true" />
             <img src="/assets/img/av_invis.gif" class="inline" v-else />
-            <span class="bg-gray-300 text-black" v-if="whisper && username === user.username">{{ user.username }}</span>
+            <span class="bg-gray-300 text-black" v-if="whisper && whisperTo === user.id">{{ user.username }}</span>
             <span v-else>{{ user.username }}</span>
           </li>
         </ul>
@@ -476,8 +476,6 @@ export default Vue.extend({
       tts: false,
       whisperTo: null,
       whisper: false,
-      privateChat: false,
-      privateChatTo: null,
     };
   },
   directives: {
@@ -957,6 +955,10 @@ export default Vue.extend({
       });
       this.$socket.on("AV:del", event => {
         this.systemMessage(event.username + " has left.");
+        if(event.id === this.whisperTo){
+          this.whisper = false;
+          this.whisperTo = null;
+        }
         this.users = this.users.filter((u) => u.id !== event.id);
         let index = this.worldMembers.indexOf(event.username);
         if(index > -1){

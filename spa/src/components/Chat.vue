@@ -26,6 +26,7 @@
               <span class="font-normal">{{ msg.msg }}</span>
               </span>
             <span class="font-bold"  v-else-if="msg.new === true">
+              <img src="/assets/img/redball.gif" v-if="whisper" />
               <sup class="inline" v-if="showRole" v-show="msg.role">{{ msg.role }}</sup>
               {{ msg.username }}
               <sub class="inline" v-if="showXP">{{ msg.exp }}</sub> : 
@@ -55,7 +56,23 @@
           "
           @click="sendMessage"
         >
-          Send
+          <span v-if="whisper">Send Whisper</span>
+          <span v-else>Send</span>
+        </button>
+        <button
+          type="button"
+          class="
+            flex-none
+            p-1
+            bg-gray-300
+            text-black
+            hover:bg-gray-200
+            active:bg-gray-400
+          "
+          @click="startWhisper"
+          v-if="whisper"
+        >
+          Cancel
         </button>
       </div>
     </div>
@@ -111,6 +128,7 @@
           </li>
           <li class="cursor-default" v-for="(user, key) in users" :key="key" @click="handler($event)" @contextmenu="handler($event)" @mouseup="menu(user.id, user.username)">
             <img src="/assets/img/av_mute.gif" class="inline" v-if="blockedMembers.includes(user.username) === true" />
+            <img src="/assets/img/redball.gif" class="inline" style="padding-left: 19px;" v-else-if="whisper && username === user.username" />
             <img src="/assets/img/av_def.gif" class="inline" v-else-if="worldMembers.includes(user.username) === true" />
             <img src="/assets/img/av_invis.gif" class="inline" v-else />
             {{ user.username }}
@@ -257,15 +275,15 @@
           @click="beamTo()">
           Beam to
         </li>
-        <li v-show="menuWhisper" 
+        <li v-show="menuWhisper" v-if="!whisper" 
           class="
             p-1
             pl-3.5
-            text-gray-500
             hover:text-white 
             hover:bg-gray-500
             active:bg-gray-400
           "
+          @click="startWhisper()"
         >
           Start Whisper
         </li>
@@ -448,6 +466,8 @@ export default Vue.extend({
       showRole: true,
       showXP: true,
       tts: false,
+      whisperTo: null,
+      whisper: false,
     };
   },
   directives: {
@@ -491,6 +511,17 @@ export default Vue.extend({
       this.xpAmount = info.data.memberInfo.xp;
     },
     debugMsg,
+    startWhisper(): void {
+      console.log(this.username)
+      if(this.whisper) {
+        this.whisper = false;
+        this.whisperTo = null;
+      } else {
+        this.whisper = true;
+      }
+      console.log(this.whisper, this.whisperTo)
+      this.closeMenu();
+    },
     sendMessage(): void {
       this.debugMsg("sending message...");
 
@@ -595,7 +626,7 @@ export default Vue.extend({
       this.placeUsername = null;
       this.placeSlug = null;
       this.placeId = null;
-
+      this.menuWhisper = false;
       this.objectId = target[0];
       if(this.activePanel === 'users'){
         this.memberId = null;
@@ -639,6 +670,7 @@ export default Vue.extend({
           this.menuInviteChat = true;
           this.menuRequestBackpack = true;
           this.menuWhisper = true;
+          this.whisperTo = target[0];
           if(this.$store.data.view3d){
             this.menuBeamTo = true;
           }

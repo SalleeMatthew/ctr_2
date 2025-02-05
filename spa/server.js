@@ -194,6 +194,33 @@ io.on("connection", async function(socket) {
         }
     });
 
+    socket.on("WHISPER", (chatData) => {
+        console.log("chat message...");
+        if (!chatData || !chatData.msg || typeof chatData.msg !== "string")
+            return;
+        const user = USERS.get(socket);
+        //const recipient = USERS.get(chatData.msg.to);
+        const bannedwords = badwords.regex;
+        if(chatData.msg.match(bannedwords)){
+            console.log(`${user.username} used a banned word in ${user.room}`);
+            return;
+        } else {
+            if (user?.room) {
+                const clientSocket = io.sockets.sockets.get(chatData.to);
+                webhookMessage(
+                    `${user.username} in ${user.room}`,
+                    chatData.msg
+                );
+                clientSocket.emit("WHISPER-FROM", {
+                    whisper: true,
+                    msg: chatData.msg,
+                    username: chatData.username,
+                    from: chatData.from,
+                });
+            }
+        }
+    });
+
     socket.on("unsubscribe", () => {
         const user = USERS.get(socket);
         socket.leave(user.room);

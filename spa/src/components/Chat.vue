@@ -4,7 +4,7 @@
       <div class="flex-grow p-1 overflow-y-auto h-full" ref="chatArea">
         <ul class="text-base">
           <li v-for="(msg, key) in messages" :key="key">
-            <i v-if="msg.new !== true && msg.type !== 'system'" class="text-white">
+            <i v-if="!msg.new && msg.type !== 'system' && !msg.whisper" class="text-white">
               {{ msg.username }}: {{ msg.msg }}
             </i>
             <strong
@@ -18,15 +18,26 @@
               {{ msg.time }}
             </strong>
             <span 
-              v-else-if="msg.username === $store.data.user.username && msg.new === true"
-              class="text-yellow-200 font-bold">
+              v-else-if="msg.username === $store.data.user.username && msg.new && !msg.whisper"
+              style="color: #ffff00;">
               <sup class="inline" v-if="showRole" v-show="msg.role">{{ msg.role }}</sup>
               {{ msg.username }}
               <sub class="inline" v-if="showXP">{{ msg.exp }}</sub> : 
               <span class="font-normal">{{ msg.msg }}</span>
-              </span>
+            </span>
+            <span 
+              v-else-if="msg.username !== $store.data.user.username && msg.whisper"
+              class="italic" style="color: #00C3FF;">
+              You whispered {{ msg.username }} 
+              <span style="font-style: normal;">{{ msg.msg }}</span>
+            </span>
+            <span 
+              v-else-if="msg.username === $store.data.user.username && msg.whisper"
+              class="italic" style="color: #00C3FF;">
+              {{ msg.from }} whispered you
+              <span style="font-style: normal;">{{ msg.msg }}</span>
+            </span>
             <span class="font-bold"  v-else-if="msg.new === true">
-              <img src="/assets/img/redball.gif" v-if="whisper" />
               <sup class="inline" v-if="showRole" v-show="msg.role">{{ msg.role }}</sup>
               {{ msg.username }}
               <sub class="inline" v-if="showXP">{{ msg.exp }}</sub> : 
@@ -56,23 +67,8 @@
           "
           @click="sendMessage"
         >
-          <span v-if="whisper">Send Whisper</span>
+          <span v-if="whisper && whisperTo">Send Whisper</span>
           <span v-else>Send</span>
-        </button>
-        <button
-          type="button"
-          class="
-            flex-none
-            p-1
-            bg-gray-300
-            text-black
-            hover:bg-gray-200
-            active:bg-gray-400
-          "
-          @click="startWhisper"
-          v-if="whisper"
-        >
-          Cancel
         </button>
       </div>
     </div>
@@ -128,10 +124,10 @@
           </li>
           <li class="cursor-default" v-for="(user, key) in users" :key="key" @click="handler($event)" @contextmenu="handler($event)" @mouseup="menu(user.id, user.username)">
             <img src="/assets/img/av_mute.gif" class="inline" v-if="blockedMembers.includes(user.username) === true" />
-            <img src="/assets/img/redball.gif" class="inline" style="padding-left: 19px;" v-else-if="whisper && username === user.username" />
             <img src="/assets/img/av_def.gif" class="inline" v-else-if="worldMembers.includes(user.username) === true" />
             <img src="/assets/img/av_invis.gif" class="inline" v-else />
-            {{ user.username }}
+            <span class="bg-gray-300 text-black" v-if="whisper && username === user.username">{{ user.username }}</span>
+            <span v-else>{{ user.username }}</span>
           </li>
         </ul>
         <ul v-if="activePanel === 'gestures'">
@@ -286,6 +282,18 @@
           @click="startWhisper()"
         >
           Start Whisper
+        </li>
+        <li v-show="menuWhisper" v-else 
+          class="
+            p-1
+            pl-3.5
+            hover:text-white 
+            hover:bg-gray-500
+            active:bg-gray-400
+          "
+          @click="startWhisper()"
+        >
+          Stop Whisper
         </li>
         <li v-show="menuInviteChat" 
           class="
@@ -468,6 +476,8 @@ export default Vue.extend({
       tts: false,
       whisperTo: null,
       whisper: false,
+      privateChat: false,
+      privateChatTo: null,
     };
   },
   directives: {
@@ -512,14 +522,12 @@ export default Vue.extend({
     },
     debugMsg,
     startWhisper(): void {
-      console.log(this.username)
       if(this.whisper) {
         this.whisper = false;
         this.whisperTo = null;
       } else {
         this.whisper = true;
       }
-      console.log(this.whisper, this.whisperTo)
       this.closeMenu();
     },
     sendMessage(): void {
@@ -549,27 +557,40 @@ export default Vue.extend({
         }
 
       if (this.message !== "" && this.connected && this.numberOfPosts < maxPosts) {
-        if(this.displayRole){
-          this.$socket.emit("CHAT", {
-            msg: this.message,
-            role: this.primaryRole,
-            exp: this.xpAmount,
-          });
+        if(!this.whisper){        
+          if(this.displayRole){
+            this.$socket.emit("CHAT", {
+              msg: this.message,
+              role: this.primaryRole,
+              exp: this.xpAmount,
+            });
+          } else {
+            this.$socket.emit("CHAT", {
+              msg: this.message,
+              exp: this.xpAmount,
+            });
+          };
+          this.$http
+            .post("/message/place/" + this.$store.data.place.id, {
+              body: this.message,
+            })
+            .then((response) => {
+              this.debugMsg(response.data);
+            });
+          this.numberOfPosts = ++this.numberOfPosts;
+          this.message = "";
         } else {
-          this.$socket.emit("CHAT", {
+          this.$socket.emit ("WHISPER", {
+            whisper: true,
+            to: this.whisperTo,
+            from: this.$store.data.user.username,
+            username: this.username,
             msg: this.message,
-            exp: this.xpAmount,
           });
+          this.messages.push({username: this.username, msg: this.message, whisper: true,})
+          this.message = "";
+          console.log(this.messages)
         }
-        this.$http
-          .post("/message/place/" + this.$store.data.place.id, {
-            body: this.message,
-          })
-          .then((response) => {
-            this.debugMsg(response.data);
-          });
-        this.numberOfPosts = ++this.numberOfPosts;
-        this.message = "";
       }
     },
     async getActivePlaces() {
@@ -907,6 +928,16 @@ export default Vue.extend({
     },
     startSocketListeners(): void {
       this.$socket.on("CHAT", data => {
+        this.debugMsg("chat message received...", data);
+        if(this.blockedMembers.includes(data.username) === false){
+          this.messages.push(data);
+          if(this.tts){
+            this.textToSpeech(data);
+          }
+        } 
+      });
+      this.$socket.on("WHISPER-FROM", data => {
+        console.log(data)
         this.debugMsg("chat message received...", data);
         if(this.blockedMembers.includes(data.username) === false){
           this.messages.push(data);

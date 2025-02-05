@@ -52,4 +52,7 @@ export class Db {
   get wallet() {
     return this.knex<Models.Wallet, Models.Wallet[]>('wallet');
   }
+  get whisper() {
+    return this.knex<Models.Whisper, Models.Whisper[]>('whisper');
+  }
 }

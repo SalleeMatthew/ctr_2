@@ -9,6 +9,8 @@ messageRoutes.post('/place/:placeId',
   (request, response) => messageController.addMessage(request, response));
 messageRoutes.post('/message/:messageid',
   (request, response) => messageController.deleteMessage(request, response));
+messageRoutes.post('/whisper',
+  (request, response) => messageController.saveWhisperMessage(request, response));
 
 export { messageRoutes };
 

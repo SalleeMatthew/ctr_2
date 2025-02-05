@@ -19,3 +19,4 @@ export * from './home-design.model';
 export * from './home.model';
 export * from './messageboard.model';
 export * from './inbox.model';
+export * from './whisper.model';

@@ -154,6 +154,32 @@ class MessageController {
       });
     }
   }
+
+  public async saveWhisperMessage(request: Request, response: Response): Promise<void> {
+    const { apitoken } = request.headers;
+    const session = this.memberService.decodeMemberToken(<string> apitoken);
+    if(!session) {
+      response.status(400).json({
+        error: 'Invalid or missing token.',
+      });
+      return;
+    }
+    try {
+      const user = await this.memberService.getMemberId(request.body.sender);
+      const sender = parseInt(user[0].id);
+      const message = request.body.message;
+      const place = parseInt(request.body.place);
+      const recipient = session.id;
+
+      await this.messageService.saveWhisperMessage(sender, message, place, recipient);
+      response.status(200).json({ success: true });
+    } catch (error) {
+      console.error(error);
+      response.status(400).json({
+        error: 'A problem occurred while trying to save the message.',
+      });
+    }
+  }
 }
 const memberService = Container.get(MemberService);
 const messageService = Container.get(MessageService);

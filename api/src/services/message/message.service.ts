@@ -2,6 +2,7 @@ import { Service } from 'typedi';
 
 import {
   MessageRepository,
+  WhisperRepository,
 } from '../../repositories';
 import {Message} from 'models';
 
@@ -14,6 +15,7 @@ export class MessageService {
 
   constructor(
     private messageRepository: MessageRepository,
+    private whisperRepository: WhisperRepository,
   ) {}
 
   public async create(
@@ -53,5 +55,12 @@ export class MessageService {
     );
   }
 
-
+  public async saveWhisperMessage(
+    sender: number,
+    message: string,
+    place: number,
+    recipient: number,
+  ): Promise<any> {
+    await this.whisperRepository.create(sender, message, place, recipient);
+  }
 }

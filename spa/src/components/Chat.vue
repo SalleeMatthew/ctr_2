@@ -589,7 +589,6 @@ export default Vue.extend({
           });
           this.messages.push({username: this.username, msg: this.message, whisper: true,})
           this.message = "";
-          console.log(this.messages)
         }
       }
     },
@@ -920,6 +919,16 @@ export default Vue.extend({
         }
       }
     },
+    async saveWhisperMessage(data) {
+      let from = data.from;
+      let msg = data.msg;
+      let place = this.$store.data.place.id;
+      await this.$http.post('/message/whisper', {
+        sender: from,
+        message: msg,
+        place: place,
+      })
+    },
     textToSpeech(data){
       const message = data.msg;
       let speech = new SpeechSynthesisUtterance();
@@ -937,13 +946,13 @@ export default Vue.extend({
         } 
       });
       this.$socket.on("WHISPER-FROM", data => {
-        console.log(data)
         this.debugMsg("chat message received...", data);
         if(this.blockedMembers.includes(data.username) === false){
           this.messages.push(data);
           if(this.tts){
             this.textToSpeech(data);
           }
+          this.saveWhisperMessage(data);
         } 
       });
       this.$socket.on("AV:del", event => {

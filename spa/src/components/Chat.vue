@@ -105,6 +105,10 @@
       </div>
       <div class="flex-grow overflow-y-auto p-1 messages-pane">
         <ul v-if="activePanel === 'users'">
+          <li class="text-white" v-if="mina">
+            <img src="/assets/img/av_bot.gif" class="inline" />
+            Mina
+          </li>
           <li class="text-white" @click="handler($event)" @contextmenu="handler($event)" @mouseup="menu($store.data.user.id)">
             <img src="/assets/img/av_me.gif" class="inline" />
             {{ this.$store.data.user.username }}
@@ -448,6 +452,7 @@ export default Vue.extend({
       showRole: true,
       showXP: true,
       tts: false,
+      mina: false,
     };
   },
   directives: {
@@ -758,6 +763,9 @@ export default Vue.extend({
         .then((response) => {
           this.messages = response.data.messages.reverse();
           this.systemMessage("Welcome to " + this.$store.data.place.name);
+          if(this.$store.data.place.slug === 'enter') {
+            this.mina = true;
+          }
         });
     },
     changeActivePanel(): void {
@@ -873,9 +881,95 @@ export default Vue.extend({
       speech.text = message;
       window.speechSynthesis.speak(speech);
     },
+    minaResponse(data){
+      const greetings = ['hey', 'hi', 'hello', 'howdy', 'greetings'];
+      const departures = ['bye', 'goodbye', 'tc', 'cya', 'later',];
+      const away = ['brb', 'bbl', 'afk',];
+      const evening = ['gn', 'goodnight',];
+      const mina = ['mina',];
+      const activateCheck = greetings.concat(departures, away, evening, mina);
+      const replies = {
+        greet: [
+          `Hello there!`, 
+          `Hey there!`, 
+          `Hi!`, 
+          `Hello!`,
+        ],
+        mina: [
+          `Hello there ${data.username}!`, 
+          `Hey there ${data.username}!`, 
+          `Hi ${data.username}!`, 
+          `Hello ${data.username}!`,
+        ],
+        departures: [
+          `byze bye!`,
+          `miss you while you're gone ${data.username}`,
+        ],
+        away: [
+          `come back soon ${data.username}`, 
+          `see you in a few`,
+        ],
+        evening: [
+          `Goodnight ${data.username}!`,
+          `Goodnight!`
+        ],
+      };
+      const testMessage = data.msg.replace(/[^0-9a-zA-Z]/g, ' ').split(' ');
+      const matches = [];
+      let response = null;
+      testMessage.forEach((check) => {
+        if(activateCheck.includes(check.toLowerCase())){
+          matches.push(check);
+        };
+      })
+      if(matches.length === 1){
+        if(greetings.includes(matches[0])) {
+          response = replies.greet[Math.floor(Math.random() * replies.greet.length +1) -1];
+        }
+        if(departures.includes(matches[0])) {
+          response = replies.departures[Math.floor(Math.random() * replies.departures.length +1) -1];
+        }
+        if(away.includes(matches[0])) {
+          response = replies.away[Math.floor(Math.random() * replies.away.length +1) -1];
+        }
+        if(evening.includes(matches[0])) {
+          response = replies.evening[Math.floor(Math.random() * replies.evening.length +1) -1];
+        }
+        if(mina.includes(matches[0])) {
+          response = replies.mina[Math.floor(Math.random() * replies.mina.length +1) -1];
+        }
+        if(data.msg.includes('mina') && data.msg.includes('shoots')){
+          response = 'Felling lucky? punk? :)'
+        }
+        if(data.msg.includes('mina') && data.msg.includes('pokes')){
+          response = '*poke poke pokey poke*'
+        }
+      }
+      if(matches.length > 1){
+        if(data.msg.includes('how do i') || data.msg.includes('how do you')){
+          
+        }
+        if(data.msg.includes('mina') && data.msg.includes('what is the') ||
+        data.msg.includes('mina') && data.msg.includes('whats the') ||
+        data.msg.includes('mina') && data.msg.includes("what's the")){
+          
+        }
+        if(data.msg.includes('mina') && data.msg.includes('who is')){
+          
+        }
+      }
+      if(response){
+        setTimeout(() => {
+          this.messages.push({msg: response, username: 'Mina', new: true,})
+        }, 1500);
+      }
+    },
     startSocketListeners(): void {
       this.$socket.on("CHAT", data => {
         this.debugMsg("chat message received...", data);
+        if(this.mina){
+          this.minaResponse(data);
+        }
         if(this.blockedMembers.includes(data.username) === false){
           this.messages.push(data);
           if(this.tts){

@@ -66,7 +66,7 @@ export class MemberService {
   
   public async canMayor(memberId: number): Promise<boolean> {
     const roleAssignments = await this.roleAssignmentRepository.getByMemberId(memberId);
-    // Extracted admin roles into a constant for easy management
+    // Extracted mayor roles into a constant for easy management
     const MAYOR_ROLES = [
       this.roleRepository.roleMap.Admin,
       this.roleRepository.roleMap.CityMayor,
@@ -77,15 +77,15 @@ export class MemberService {
   
   public async canCouncil(memberId: number): Promise<boolean> {
     const roleAssignments = await this.roleAssignmentRepository.getByMemberId(memberId);
-    // Extracted admin roles into a constant for easy management
-    const MAYOR_ROLES = [
+    // Extracted council roles into a constant for easy management
+    const COUNCIL_ROLES = [
       this.roleRepository.roleMap.Admin,
       this.roleRepository.roleMap.CityMayor,
       this.roleRepository.roleMap.DeputyMayor,
       this.roleRepository.roleMap.ColonyLeader,
       this.roleRepository.roleMap.CityCouncil,
     ];
-    return !!roleAssignments.find(assignment => MAYOR_ROLES.includes(assignment.role_id));
+    return !!roleAssignments.find(assignment => COUNCIL_ROLES.includes(assignment.role_id));
   }
 
   public async canStaff(memberId: number): Promise<boolean> {

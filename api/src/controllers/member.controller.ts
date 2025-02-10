@@ -64,6 +64,8 @@ class MemberController {
       if (typeof request.params.id !== 'undefined') {
         if (await this.memberService.canAdmin(session.id)) {
           memberInfo = await this.memberService.getMemberInfoAdmin(parseInt(request.params.id));
+        } else if (await this.memberService.canMayor(session.id)) {
+          memberInfo = await this.memberService.getMemberInfoAdmin(parseInt(request.params.id));
         } else if (await this.memberService.canStaff(session.id)) {
           memberInfo = await this.memberService.getMemberInfoAdmin(parseInt(request.params.id));
         } else if (parseInt(request.params.id) === session.id) {

@@ -3,7 +3,7 @@
     <div class="flex justify-center w-full mb-8">
       <h1 class="text-2xl font-semibold">Club Members</h1>
     </div>
-    <div class="flex justify-center w-full mb-5" v-if="isAdmin">
+    <div class="flex justify-center w-full mb-5" v-if="canAdmin">
       <select
           v-model="status"
           class="border border-gray-400 p-2 rounded"
@@ -39,7 +39,7 @@
               <th class="border-double border-4 border-gray-400 text-chat">Username</th>
               <th 
                   class="border-double border-4 border-gray-400 text-chat"
-                  v-if="isAdmin">Action</th>
+                  v-if="canAdmin">Action</th>
             </tr>
             <tr v-for="(member, index) in members" :key="member.username">
               <td class="border-double border-4 border-gray-400">
@@ -48,7 +48,7 @@
               <td class="border-double border-4 border-gray-400">
                 {{ member.username }}
               </td>
-              <td class="border-double border-4 border-gray-400" v-if="isAdmin">
+              <td class="border-double border-4 border-gray-400" v-if="canAdmin">
                 <span v-if="member.status === 'member'">
                   <button class="btn-ui-inline py-0.5" @click="reject(member.username)">
                     Ban
@@ -84,7 +84,7 @@ export default Vue.extend({
       membersCount: 0,
       limit: 10,
       members: [],
-      isAdmin: true,
+      isAdmin: false,
       offset: 0,
       status: "member",
       orderBy: "username",
@@ -92,6 +92,15 @@ export default Vue.extend({
     };
   },
   methods: {
+    async checkAdmin() {
+      try {
+        const adminCheck = await this.$http
+          .get(`/place/can_admin/${this.$store.data.place.slug}/${this.$store.data.place.id}`);
+        this.canAdmin = adminCheck.data.result;
+      } catch (error) {
+        this.canAdmin = false;
+      }
+    },
     async fetchMembers() {
       const memberResults = await this.$http.get(("/club/members"), {
         clubId: this.$route.params.id,

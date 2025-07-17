@@ -91,7 +91,7 @@ io.on("connection", async function(socket) {
                         rot,
                     });
                 }
-            }
+            } 
 
             console.log(`User '${tokenData.username}' entered room ${room}`);
             webhookMessage(
@@ -102,6 +102,11 @@ io.on("connection", async function(socket) {
             console.error("invalid token!");
         }
     });
+
+    socket.on("GET_IP", () => {
+        const ip = socket.handshake.headers['x-forwarded-for'] || socket.conn.remoteAddress;
+            socket.emit("CLIENT_IP", {ip: ip});
+    })
 
     //handle avatar related calls.
     socket.on("AV", function(msg) {

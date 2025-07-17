@@ -356,6 +356,15 @@ export class MemberService {
     return this.encodeMemberToken(member);
   }
 
+   public async updateIP(user_id: number, ip: string): Promise<any> {
+    let last = null;
+    const userLastIP = await this.memberRepository.findById(user_id);
+    if(userLastIP.current_ip){
+      last = userLastIP.current_ip;
+    };
+    await this.memberRepository.update(user_id, { current_ip: ip, last_ip: last });
+  }
+
   /**
    * Distributes daily credits (citycash, xp) to the member with the given id if they haven't
    * already received any today.

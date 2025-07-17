@@ -375,6 +375,11 @@ export default Vue.extend({
         this.receivedInstantMessage();
       })
     },
+    ipListener(){
+      this.$socket.on("CLIENT_IP", data => {
+        this.logIP(data.ip);
+      })
+    },
     async checkAccessLevel() {
       try {
         await this.$http.get(`/member/getadminlevel`)
@@ -388,11 +393,21 @@ export default Vue.extend({
         this.accessLevel = null;
       }
     },
+    getIP(){
+      this.$socket.emit("GET_IP");
+    },
+    logIP(data) {
+      this.$http.post("/member/updateIP", {
+        ip: data
+      });
+    },
   },
   mounted() {
     this.checkAccessLevel();
     this.instantMessagingListener();
     this.moderationListener();
+    this.ipListener();
+    this.getIP();
     //todo populate jumpgate with worlds
     X3D(
       () => {

@@ -44,4 +44,6 @@ export interface Member extends Model {
   is_3d: number;
   /** This is when the user was last active */
   last_activity?: Date;
+  last_ip: string;
+  current_ip: string;
 }

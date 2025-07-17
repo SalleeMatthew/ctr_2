@@ -169,6 +169,14 @@ export default Vue.extend({
   methods: {
     async login(): Promise<void> {
       this.showError = false;
+      const deviceInfo = {
+        appVersion: navigator.appVersion,
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+        language: navigator.language,
+      };
+
+      console.log("Device Info:", deviceInfo);
       try {
         const { data } = await this.$http.post("/member/login", {
           username: this.username,

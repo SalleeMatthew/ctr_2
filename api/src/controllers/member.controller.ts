@@ -223,6 +223,20 @@ class MemberController {
     }
   }
 
+  public async updateIP(request: Request, response: Response): Promise<void> {
+    const ip = request.body;
+    const session = this.memberService.decryptSession(request, response);
+    if(!session) return;
+    try {
+      if(ip && session){
+        await this.memberService.updateIP(session.id, ip.ip);
+      }
+    } catch (error) {
+      console.error(error);
+      response.status(400).json({ error: error.message });
+    }
+  }
+
   public async joinedPlace(request: Request, response: Response): Promise<void> {
     const session = this.memberService.decryptSession(request, response);
     if (!session) return;

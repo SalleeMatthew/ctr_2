@@ -91,7 +91,7 @@ io.on("connection", async function(socket) {
                         rot,
                     });
                 }
-            } 
+            }
 
             console.log(`User '${tokenData.username}' entered room ${room}`);
             webhookMessage(

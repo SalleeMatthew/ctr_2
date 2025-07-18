@@ -356,13 +356,29 @@ export class MemberService {
     return this.encodeMemberToken(member);
   }
 
-   public async updateIP(user_id: number, ip: string): Promise<any> {
-    let last = null;
-    const userLastIP = await this.memberRepository.findById(user_id);
-    if(userLastIP.current_ip){
-      last = userLastIP.current_ip;
-    };
-    await this.memberRepository.update(user_id, { current_ip: ip, last_ip: last });
+  public async updateIP(
+    user_id: number, 
+    ip: string,
+    version: string,
+    agent: string,
+    platform: string,
+    language: string,
+    timezone: string,
+    screenWidth: number,
+    screenHeight: number,
+    colorDepth: number,
+    cores: number,  
+  ): Promise<any> {
+    const deviceData = 
+      version + agent + platform + language + timezone + 
+      screenWidth + screenHeight + colorDepth + cores + ip;
+    const fingerprint = await this.createFingerprint(deviceData);
+    await this.memberRepository.update(user_id, { current_ip: ip, fingerprint: fingerprint });
+  }
+
+  public async createFingerprint(user: string): Promise<any> {
+    const crypto = require('crypto');
+    return crypto.createHash('md5').update(user).digest('hex');
   }
 
   /**

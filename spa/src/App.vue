@@ -397,8 +397,20 @@ export default Vue.extend({
       this.$socket.emit("GET_IP");
     },
     logIP(data) {
-      this.$http.post("/member/updateIP", {
+      const clientDetails= {
+        version: navigator.appVersion,
+        agent: navigator.userAgent,
+        platform: navigator.platform,
+        language: navigator.language,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        screenWidth: window.screen.width,
+        screenHeight: window.screen.height,
+        colorDepth: window.screen.colorDepth,
+        cores: navigator.hardwareConcurrency,
         ip: data
+      }
+      this.$http.post("/member/updateIP", {
+        client: clientDetails
       });
     },
   },

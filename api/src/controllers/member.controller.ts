@@ -224,12 +224,24 @@ class MemberController {
   }
 
   public async updateIP(request: Request, response: Response): Promise<void> {
-    const ip = request.body;
+    const user = request.body;
     const session = this.memberService.decryptSession(request, response);
     if(!session) return;
     try {
-      if(ip && session){
-        await this.memberService.updateIP(session.id, ip.ip);
+      if(user && session){
+        await this.memberService.updateIP(
+          session.id, 
+          user.client.ip,
+          user.client.version,
+          user.client.agent,
+          user.client.platform,
+          user.client.language,
+          user.client.timezone,
+          user.client.screenWidth,
+          user.client.screenHeight,
+          user.client.colorDepth,
+          user.client.cores,
+        );
       }
     } catch (error) {
       console.error(error);

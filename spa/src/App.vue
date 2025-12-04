@@ -65,6 +65,11 @@
               <div class="menu">
                 <a href="#"
                   class="menuLink"
+                  @click.prevent="openHowDoIModal"
+                  style="top: 58px"
+                ></a>
+                <a href="#"
+                  class="menuLink"
                   @click.prevent="openInfoModal"
                   style="top: 78px"
                 ></a>
@@ -143,6 +148,7 @@ import CitizenOnlineModal from './components/modals/CitizenOnlineModal.vue';
 import ModalService from "./components/modals/services/ModalService.vue";
 import ClockPage from "./components/Clock.vue";
 import InstantMessageModal from './components/modals/InstantMessageModal.vue';
+import HowDoIModal from './components/modals/HowDoIModal.vue';
 
 declare const X3D: any;
 
@@ -333,6 +339,9 @@ export default Vue.extend({
     },
     openInfoModal(): void {
       ModalService.open(InfoModal);
+    },
+    openHowDoIModal(): void {
+      ModalService.open(HowDoIModal);
     },
     openCitizenOnlineModal(): void {
       ModalService.open(CitizenOnlineModal);

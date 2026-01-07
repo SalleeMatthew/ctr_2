@@ -263,6 +263,7 @@ export default Vue.extend({
 
       this.showSuccess = false;
       this.showError = false;
+      this.isProcessing = true;
       try {
         await this.$http.post("/mall/reject", {
           'id': objectId

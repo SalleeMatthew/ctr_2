@@ -371,7 +371,7 @@ class AdminController {
     const admin = await this.memberService.getAccessLevel(session.id);
     if (admin.includes('security')) {
       try {
-        const results = await this.adminService.getCommunityData();
+        const results = await this.adminService.getCommunityData(admin);
         response.status(200).json({results});
       } catch (error) {
         console.log(error);

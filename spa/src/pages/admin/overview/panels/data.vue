@@ -47,7 +47,7 @@
       <div class="p-2">
         <table class="w-full">
           <tr>
-            <td v-if="wealthiestUsers.length !== 0">
+            <td v-if="newestUsers.length !== 0">
               <table class="w-full">
                 <tr v-for="user in newestUsers" :key="user.id">
                   <td>
@@ -274,7 +274,7 @@
             <td v-if="activeMB.length !== 0">
               <ul>
                 <li v-for="activeBoard in activeMB" :key="activeBoard.id">
-                  {{ activeBoard.name }}
+                  <span class="capitalize">{{ activeBoard.type }}</span>: {{ activeBoard.name }}
                 </li>
               </ul>
             </td>
@@ -370,10 +370,11 @@
                 <tr v-for="transaction in latestTransactions" :key="transaction.id">
                   <td>
                     <div class="flex ">
-                      <div class="p-2">{{ Number(transaction.amount).toLocaleString() }} cc was sent from 
-                        <span class="text-green">{{ transaction.sender_username[0].username }}</span>
+                      <div class="p-2">
+                        {{ Number(transaction.amount).toLocaleString() }} cc was sent from 
+                        <span class="text-green">{{ transaction.sender_username }}</span>
                          to
-                        <span class="text-green">{{ transaction.recipient_username[0].username }}</span>
+                        <span class="text-green">{{ transaction.recipient_username }}</span>
                          for {{ transaction.reason }} 
                          on
                         {{ new Date(transaction.created_at).toDateString() }}
@@ -450,25 +451,26 @@ export default Vue.extend({
   ],
   methods: {
     async getCommunityData() {
-      const communityData = await this.$http.get('/admin/get-community-data');
+      const communityData = await this.$http.get("/admin/get-community-data");
       const path = communityData.data.results;
+      const hasAdminAccess = this.accessLevel && this.accessLevel.includes("admin");
       // Activity Data
-      if(!Number.isNaN(path.activity.totalDaily)){
+      if(hasAdminAccess && path.activity && !Number.isNaN(path.activity.totalDaily)){
         this.dailyUsers = path.activity.totalDaily[0].count;
       }
-      if(!Number.isNaN(path.activity.totalWeekly)){
+      if(hasAdminAccess && path.activity && !Number.isNaN(path.activity.totalWeekly)){
         this.weeklyUsers = path.activity.totalWeekly[0].count;
       }
-      if(!Number.isNaN(path.activity.totalMonthly)){
+      if(hasAdminAccess && path.activity && !Number.isNaN(path.activity.totalMonthly)){
         this.monthlyUsers = path.activity.totalMonthly[0].count;
       }
-      if(!Number.isNaN(path.activity.newWeekly)){
+      if(hasAdminAccess && path.activity && !Number.isNaN(path.activity.newWeekly)){
         this.newMembersLastWeek = path.activity.newWeekly[0].count;
       }
-      if(!Number.isNaN(path.activity.newMonthly)){
+      if(hasAdminAccess && path.activity && !Number.isNaN(path.activity.newMonthly)){
         this.newMembersLastMonth = path.activity.newMonthly[0].count;
       }
-      if(!Number.isNaN(path.activity.newYearly)){
+      if(hasAdminAccess && path.activity && !Number.isNaN(path.activity.newYearly)){
         this.newMembersLastYear = path.activity.newYearly[0].count;
       }
       
@@ -484,77 +486,87 @@ export default Vue.extend({
         this.totalJailedUsers = path.security.totalJailed[0].count;
       }
       // Place Data
-      if(!Number.isNaN(path.place.totalColonies)){
+      if(hasAdminAccess && path.place && !Number.isNaN(path.place.totalColonies)){
         this.totalColonies = path.place.totalColonies[0].count;
       }
-      if(!Number.isNaN(path.place.totalHoods)){
+      if(hasAdminAccess && path.place && !Number.isNaN(path.place.totalHoods)){
         this.totalNeighborhoods = path.place.totalHoods[0].count;
       }
-      if(!Number.isNaN(path.place.totalBlocks)){
+      if(hasAdminAccess && path.place && !Number.isNaN(path.place.totalBlocks)){
         this.totalBlocks = path.place.totalBlocks[0].count;
       }
-      if(!Number.isNaN(path.place.totalFreeSpots)){
+      if(hasAdminAccess && path.place && !Number.isNaN(path.place.totalFreeSpots)){
         this.totalFreeSpots = path.place.totalFreeSpots[0].count;
       }
-      if(!Number.isNaN(path.place.totalHomes)){
+      if(hasAdminAccess && path.place && !Number.isNaN(path.place.totalHomes)){
         this.totalHomes = path.place.totalHomes[0].count;
       }
-      if(!Number.isNaN(path.place.totalStorages)){
+      if(hasAdminAccess && path.place && !Number.isNaN(path.place.totalStorages)){
         this.totalStorageAreas = path.place.totalStorages[0].count;
       }
-      if(!Number.isNaN(path.place.totalClubs)){
+      if(hasAdminAccess && path.place && !Number.isNaN(path.place.totalClubs)){
         this.totalClubs = path.place.totalClubs[0].count;
       }
-      if(!Number.isNaN(path.place.totalPrivate)){
+      if(hasAdminAccess && path.place && !Number.isNaN(path.place.totalPrivate)){
         this.totalPrivate = path.place.totalPrivate[0].count;
       }
 
       // Member Data
-      if(!Number.isNaN(path.member.totalMembers)){
+      if(hasAdminAccess && path.member.totalMembers && !Number.isNaN(path.member.totalMembers)){
         this.totalUsers = path.member.totalMembers[0].count;
       }
       this.newestUsers = path.member.newestMembers;
 
       // Money Data
-      this.averageMoney = path.money.averageBalance[0].balance;
-      this.highestMoney = path.money.topBalance;
-      this.totalMoney = path.money.totalBalance[0].balance;
-      this.wealthiestUsers = path.money.wealthiestUsers;
+      if(hasAdminAccess && path.money.averageBalance) {
+        this.averageMoney = path.money.averageBalance[0].balance;
+      }
+      if(hasAdminAccess && path.money.topBalance !== undefined) {
+        this.highestMoney = path.money.topBalance;
+      }
+      if(hasAdminAccess && path.money.totalBalance) {
+        this.totalMoney = path.money.totalBalance[0].balance;
+      }
+      if(hasAdminAccess && path.money.wealthiestUsers) {
+        this.wealthiestUsers = path.money.wealthiestUsers;
+      }
       this.latestTransactions = path.money.latestTransactions;
 
       // Object Data
-      this.totalObjects = path.object.instances.totalUserObjects;
-      this.averageObjects = Math.round(this.totalObjects / this.totalUsers);
-      if(!Number.isNaN(path.object.instances.totalForSale)){
-        this.totalObjectsForSale = path.object.instances.totalForSale[0].count;
-      }
-      if(!Number.isNaN(path.object.instances.highestUserPrice)){
-        this.highestPriceForSale = path.object.instances.highestUserPrice[0].price;
-      }
-      if(!Number.isNaN(path.object.instances.averageUserPrice)){
-        this.averagePriceForSale = path.object.instances.averageUserPrice[0].price;
-      }
-      if(!Number.isNaN(path.object.mall.averagePrice)){
-        this.averageMallPrice = Math.round(path.object.mall.averagePrice[0].price);
-      }
-      if(!Number.isNaN(path.object.mall.highestPrice)){
-        this.highestMallPrice = Math.round(path.object.mall.highestPrice[0].price);
-      }
-      if(!Number.isNaN(path.object.mall.totalMallObjects)){
-        this.totalMallObjects = Math.round(path.object.mall.totalMallObjects[0].count);
-      }
-      if(!Number.isNaN(path.object.mall.totalStocked)){
-        this.totalStocked = Math.round(path.object.mall.totalStocked[0].count);
-      }
-      if(!Number.isNaN(path.object.mall.totalUploaded)){
-        this.totalUploads = Math.round(path.object.mall.totalUploaded[0].count);
+      if(hasAdminAccess && path.object) {
+        this.totalObjects = path.object.instances.totalUserObjects;
+        this.averageObjects = this.totalUsers ? Math.round(this.totalObjects / this.totalUsers) : 0;
+        if(!Number.isNaN(path.object.instances.totalForSale)){
+          this.totalObjectsForSale = path.object.instances.totalForSale[0].count;
+        }
+        if(!Number.isNaN(path.object.instances.highestUserPrice)){
+          this.highestPriceForSale = path.object.instances.highestUserPrice[0].price;
+        }
+        if(!Number.isNaN(path.object.instances.averageUserPrice)){
+          this.averagePriceForSale = path.object.instances.averageUserPrice[0].price;
+        }
+        if(!Number.isNaN(path.object.mall.averagePrice)){
+          this.averageMallPrice = Math.round(path.object.mall.averagePrice[0].price);
+        }
+        if(!Number.isNaN(path.object.mall.highestPrice)){
+          this.highestMallPrice = Math.round(path.object.mall.highestPrice[0].price);
+        }
+        if(!Number.isNaN(path.object.mall.totalMallObjects)){
+          this.totalMallObjects = Math.round(path.object.mall.totalMallObjects[0].count);
+        }
+        if(!Number.isNaN(path.object.mall.totalStocked)){
+          this.totalStocked = Math.round(path.object.mall.totalStocked[0].count);
+        }
+        if(!Number.isNaN(path.object.mall.totalUploaded)){
+          this.totalUploads = Math.round(path.object.mall.totalUploaded[0].count);
+        }
       }
 
       // Active places
       this.activePlaces = path.messages.chat;
       this.activeMB = path.messages.messageboard;
       // New Hires
-      this.latestHires = path.hiring.latestRoleHire
+      this.latestHires = path.hiring.latestRoleHire;
     },
   },
   created() {

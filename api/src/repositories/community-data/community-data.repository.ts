@@ -127,128 +127,122 @@ export class CommunityDataRepository {
   }
 
   private async getSecurityMetrics(): Promise<any> {
-    const [row] = await this.db.knex
-      .select(
-        this.db.knex.raw(
-          `(
-            SELECT COUNT(DISTINCT ban_member_id)
-            FROM ban
-            WHERE status = 1 AND type = 'full' AND end_date >= ?
-          ) AS totalBanned`,
-          [new Date()],
-        ),
-        this.db.knex.raw(
-          `(
-            SELECT COUNT(DISTINCT ban_member_id)
-            FROM ban
-            WHERE status = 1 AND type = 'jail' AND end_date >= ?
-          ) AS totalJailed`,
-          [new Date()],
-        ),
-      );
+    const now = new Date();
+    const [totalBannedRow, totalJailedRow] = await Promise.all([
+      this.db.knex('ban')
+        .countDistinct({ totalBanned: 'ban_member_id' })
+        .where('status', 1)
+        .andWhere('type', 'full')
+        .andWhere('end_date', '>=', now)
+        .first(),
+      this.db.knex('ban')
+        .countDistinct({ totalJailed: 'ban_member_id' })
+        .where('status', 1)
+        .andWhere('type', 'jail')
+        .andWhere('end_date', '>=', now)
+        .first(),
+    ]);
 
     return {
-      totalBanned: Number(row.totalBanned || 0),
-      totalJailed: Number(row.totalJailed || 0),
+      totalBanned: Number(totalBannedRow?.totalBanned || 0),
+      totalJailed: Number(totalJailedRow?.totalJailed || 0),
     };
   }
 
   private async getAdminMetrics(dates: CommunityDashboardDates): Promise<any> {
-    const [row] = await this.db.knex
-      .select(
-        this.db.knex.raw(
-          `(SELECT COUNT(id) FROM member WHERE last_activity >= ?) AS totalDaily`,
-          [dates.pastDay],
-        ),
-        this.db.knex.raw(
-          `(SELECT COUNT(id) FROM member WHERE last_activity >= ?) AS totalWeekly`,
-          [dates.pastWeek],
-        ),
-        this.db.knex.raw(
-          `(SELECT COUNT(id) FROM member WHERE last_activity >= ?) AS totalMonthly`,
-          [dates.pastMonth],
-        ),
-        this.db.knex.raw(
-          `(SELECT COUNT(id) FROM member WHERE created_at >= ?) AS newWeekly`,
-          [dates.pastWeek],
-        ),
-        this.db.knex.raw(
-          `(SELECT COUNT(id) FROM member WHERE created_at >= ?) AS newMonthly`,
-          [dates.pastMonth],
-        ),
-        this.db.knex.raw(
-          `(SELECT COUNT(id) FROM member WHERE created_at >= ?) AS newYearly`,
-          [dates.pastYear],
-        ),
-        this.db.knex.raw(
-          `(SELECT COUNT(id) FROM place WHERE type = 'colony') AS totalColonies`,
-        ),
-        this.db.knex.raw(
-          `(SELECT COUNT(id) FROM place WHERE type = 'hood') AS totalHoods`,
-        ),
-        this.db.knex.raw(
-          `(SELECT COUNT(id) FROM place WHERE type = 'block') AS totalBlocks`,
-        ),
-        this.db.knex.raw(
-          `(SELECT COUNT(location) FROM map_location WHERE available = 1) AS totalFreeSpots`,
-        ),
-        this.db.knex.raw(
-          `(SELECT COUNT(id) FROM place WHERE type = 'home') AS totalHomes`,
-        ),
-        this.db.knex.raw(
-          `(SELECT COUNT(id) FROM place WHERE type = 'storage') AS totalStorages`,
-        ),
-        this.db.knex.raw(
-          `(SELECT COUNT(id) FROM place WHERE type = 'club') AS totalClubs`,
-        ),
-        this.db.knex.raw(
-          `(SELECT COUNT(id) FROM place WHERE type = 'private') AS totalPrivate`,
-        ),
-        this.db.knex.raw(
-          `(SELECT COUNT(id) FROM member) AS totalMembers`,
-        ),
-        this.db.knex.raw(
-          `(SELECT COALESCE(AVG(balance), 0) FROM wallet) AS averageBalance`,
-        ),
-        this.db.knex.raw(
-          `(SELECT COALESCE(SUM(balance), 0) FROM wallet) AS totalBalance`,
-        ),
-        this.db.knex.raw(
-          `(SELECT COALESCE(MAX(balance), 0) FROM wallet) AS topBalance`,
-        ),
-        this.db.knex.raw(
-          `(SELECT COUNT(id) FROM object_instance) AS totalUserObjects`,
-        ),
-        this.db.knex.raw(
-          `(SELECT COUNT(id) FROM object_instance
-            WHERE object_price != '' OR object_price IS NOT NULL) AS totalObjectsForSale`,
-        ),
-        this.db.knex.raw(
-          `(SELECT COALESCE(AVG(object_price), 0) FROM object_instance
-            WHERE object_price != '' OR object_price IS NOT NULL) AS averageUserPrice`,
-        ),
-        this.db.knex.raw(
-          `(SELECT COALESCE(MAX(object_price), 0) FROM object_instance
-            WHERE object_price != '' OR object_price IS NOT NULL) AS highestUserPrice`,
-        ),
-        this.db.knex.raw(
-          `(SELECT COALESCE(AVG(price), 0) FROM object WHERE status = 1) AS averageMallPrice`,
-        ),
-        this.db.knex.raw(
-          `(SELECT COALESCE(MAX(price), 0) FROM object WHERE status = 1) AS highestMallPrice`,
-        ),
-        this.db.knex.raw(
-          `(SELECT COUNT(id) FROM object WHERE status != 0 AND status != 2) AS totalMallObjects`,
-        ),
-        this.db.knex.raw(
-          `(SELECT COUNT(id) FROM object WHERE status = 1) AS totalStocked`,
-        ),
-        this.db.knex.raw(
-          `(SELECT COUNT(id) FROM object) AS totalUploaded`,
-        ),
-      );
+    const pricedObjectInstances = this.db.knex('object_instance')
+      .whereNotNull('object_price')
+      .andWhere('object_price', '!=', '');
 
-    return this.normalizeMetricRow(row);
+    const [
+      totalDailyRow,
+      totalWeeklyRow,
+      totalMonthlyRow,
+      newWeeklyRow,
+      newMonthlyRow,
+      newYearlyRow,
+      totalColoniesRow,
+      totalHoodsRow,
+      totalBlocksRow,
+      totalFreeSpotsRow,
+      totalHomesRow,
+      totalStoragesRow,
+      totalClubsRow,
+      totalPrivateRow,
+      totalMembersRow,
+      walletMetricsRow,
+      totalUserObjectsRow,
+      pricedObjectMetricsRow,
+      mallPriceMetricsRow,
+      totalMallObjectsRow,
+      totalStockedRow,
+      totalUploadedRow,
+    ] = await Promise.all([
+      this.db.knex('member').count({ totalDaily: 'id' }).where('last_activity', '>=', dates.pastDay).first(),
+      this.db.knex('member').count({ totalWeekly: 'id' }).where('last_activity', '>=', dates.pastWeek).first(),
+      this.db.knex('member').count({ totalMonthly: 'id' }).where('last_activity', '>=', dates.pastMonth).first(),
+      this.db.knex('member').count({ newWeekly: 'id' }).where('created_at', '>=', dates.pastWeek).first(),
+      this.db.knex('member').count({ newMonthly: 'id' }).where('created_at', '>=', dates.pastMonth).first(),
+      this.db.knex('member').count({ newYearly: 'id' }).where('created_at', '>=', dates.pastYear).first(),
+      this.db.knex('place').count({ totalColonies: 'id' }).where('type', 'colony').first(),
+      this.db.knex('place').count({ totalHoods: 'id' }).where('type', 'hood').first(),
+      this.db.knex('place').count({ totalBlocks: 'id' }).where('type', 'block').first(),
+      this.db.knex('map_location').count({ totalFreeSpots: 'location' }).where('available', 1).first(),
+      this.db.knex('place').count({ totalHomes: 'id' }).where('type', 'home').first(),
+      this.db.knex('place').count({ totalStorages: 'id' }).where('type', 'storage').first(),
+      this.db.knex('place').count({ totalClubs: 'id' }).where('type', 'club').first(),
+      this.db.knex('place').count({ totalPrivate: 'id' }).where('type', 'private').first(),
+      this.db.knex('member').count({ totalMembers: 'id' }).first(),
+      this.db.knex('wallet')
+        .avg({ averageBalance: 'balance' })
+        .sum({ totalBalance: 'balance' })
+        .max({ topBalance: 'balance' })
+        .first(),
+      this.db.knex('object_instance').count({ totalUserObjects: 'id' }).first(),
+      pricedObjectInstances.clone()
+        .count({ totalObjectsForSale: 'id' })
+        .avg({ averageUserPrice: 'object_price' })
+        .max({ highestUserPrice: 'object_price' })
+        .first(),
+      this.db.knex('object')
+        .avg({ averageMallPrice: 'price' })
+        .max({ highestMallPrice: 'price' })
+        .where('status', 1)
+        .first(),
+      this.db.knex('object').count({ totalMallObjects: 'id' }).whereNotIn('status', [0, 2]).first(),
+      this.db.knex('object').count({ totalStocked: 'id' }).where('status', 1).first(),
+      this.db.knex('object').count({ totalUploaded: 'id' }).first(),
+    ]);
+
+    return this.normalizeMetricRow({
+      totalDaily: totalDailyRow?.totalDaily,
+      totalWeekly: totalWeeklyRow?.totalWeekly,
+      totalMonthly: totalMonthlyRow?.totalMonthly,
+      newWeekly: newWeeklyRow?.newWeekly,
+      newMonthly: newMonthlyRow?.newMonthly,
+      newYearly: newYearlyRow?.newYearly,
+      totalColonies: totalColoniesRow?.totalColonies,
+      totalHoods: totalHoodsRow?.totalHoods,
+      totalBlocks: totalBlocksRow?.totalBlocks,
+      totalFreeSpots: totalFreeSpotsRow?.totalFreeSpots,
+      totalHomes: totalHomesRow?.totalHomes,
+      totalStorages: totalStoragesRow?.totalStorages,
+      totalClubs: totalClubsRow?.totalClubs,
+      totalPrivate: totalPrivateRow?.totalPrivate,
+      totalMembers: totalMembersRow?.totalMembers,
+      averageBalance: walletMetricsRow?.averageBalance,
+      totalBalance: walletMetricsRow?.totalBalance,
+      topBalance: walletMetricsRow?.topBalance,
+      totalUserObjects: totalUserObjectsRow?.totalUserObjects,
+      totalObjectsForSale: pricedObjectMetricsRow?.totalObjectsForSale,
+      averageUserPrice: pricedObjectMetricsRow?.averageUserPrice,
+      highestUserPrice: pricedObjectMetricsRow?.highestUserPrice,
+      averageMallPrice: mallPriceMetricsRow?.averageMallPrice,
+      highestMallPrice: mallPriceMetricsRow?.highestMallPrice,
+      totalMallObjects: totalMallObjectsRow?.totalMallObjects,
+      totalStocked: totalStockedRow?.totalStocked,
+      totalUploaded: totalUploadedRow?.totalUploaded,
+    });
   }
 
   private async getRecentBanList(time: Date): Promise<any> {
@@ -317,23 +311,25 @@ export class CommunityDataRepository {
   private async getActiveChats(time: Date): Promise<any> {
     return this.db.knex
       .select('place.id', 'place.name')
+      .max({ latestCreatedAt: 'message.created_at' })
       .from('message')
       .innerJoin('place', 'message.place_id', 'place.id')
       .where('message.status', 1)
       .andWhere('message.created_at', '>=', time)
       .groupBy('place.id', 'place.name')
-      .orderByRaw('MAX(message.created_at) DESC')
+      .orderBy('latestCreatedAt', 'desc')
       .limit(5);
   }
 
   private async getActiveMessageboards(time: Date): Promise<any> {
     return this.db.knex
       .select('place.id', 'place.name', 'place.type')
+      .max({ latestCreatedAt: 'messageboard.created_at' })
       .from('messageboard')
       .innerJoin('place', 'messageboard.place_id', 'place.id')
       .where('messageboard.created_at', '>=', time)
       .groupBy('place.id', 'place.name', 'place.type')
-      .orderByRaw('MAX(messageboard.created_at) DESC')
+      .orderBy('latestCreatedAt', 'desc')
       .limit(5);
   }
 
